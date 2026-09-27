@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zayn.dev — SPA Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="window">
+
+    <!-- Title bar -->
+    <div class="titlebar">
+      <div class="titlebar__dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="titlebar__path" id="urlBar">zayn.dev/</div>
+      <div class="titlebar__status">
+        <span class="dot dot--live"></span> no reload
+      </div>
+    </div>
+
+    <div class="shell">
+
+      <!-- Sidebar file tree acting as nav -->
+      <nav class="tree" id="tree" aria-label="Primary">
+        <div class="tree__label">explorer</div>
+        <ul>
+          <li>
+            <a href="#/" class="tree__item" data-route="/" data-title="Home.html">
+              <span class="tree__icon">◆</span>Home<span class="tree__ext">.html</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/projects" class="tree__item" data-route="/projects" data-title="Projects.js">
+              <span class="tree__icon">◆</span>Projects<span class="tree__ext">.js</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/about" class="tree__item" data-route="/about" data-title="About.md">
+              <span class="tree__icon">◆</span>About<span class="tree__ext">.md</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/contact" class="tree__item" data-route="/contact" data-title="Contact.sh">
+              <span class="tree__icon">◆</span>Contact<span class="tree__ext">.sh</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="tree__label tree__label--spaced">state log</div>
+        <ol class="log" id="log" aria-live="polite"></ol>
+      </nav>
+
+      <!-- Tab strip + dynamic content container -->
+      <main class="pane">
+        <div class="tabstrip" id="tabstrip"></div>
+        <div class="content" id="content" tabindex="-1"></div>
+      </main>
+
+    </div>
+  </div>
+
+  <template id="tpl-home">
+    <section class="view view--home">
+      <p class="kicker">// week 5 · single page application</p>
+      <h1>Building an SPA<br>without the reload.</h1>
+      <p class="lede">This page is one HTML file. Every screen you visit — Projects, About, Contact — is rendered by JavaScript into the pane on the right, and the address bar above updates through the History API. No navigation ever reloads the document.</p>
+      <div class="stat-row">
+        <div class="stat"><span class="stat__num">1</span><span class="stat__label">HTML file</span></div>
+        <div class="stat"><span class="stat__num">4</span><span class="stat__label">routes</span></div>
+        <div class="stat"><span class="stat__num">0</span><span class="stat__label">full reloads</span></div>
+      </div>
+      <button class="btn" data-nav="/projects">Open Projects.js →</button>
+    </section>
+  </template>
+
+  <template id="tpl-projects-list">
+    <section class="view">
+      <p class="kicker">// projects/index</p>
+      <h1>Projects</h1>
+      <p class="lede">Click a project to load its detail view. The URL changes to <code>/projects/:id</code> and the back button returns you here — all without leaving this document.</p>
+      <ul class="cards" id="projectCards"></ul>
+    </section>
+  </template>
+
+  <template id="tpl-project-detail">
+    <section class="view">
+      <a href="#/projects" class="back" data-nav="/projects">← back to Projects.js</a>
+      <p class="kicker" id="pd-kicker">// projects/detail</p>
+      <h1 id="pd-title"></h1>
+      <p class="lede" id="pd-summary"></p>
+      <div class="meta-grid" id="pd-meta"></div>
+      <h2 class="subhead">Notes</h2>
+      <p class="body-text" id="pd-notes"></p>
+    </section>
+  </template>
+
+  <template id="tpl-about">
+    <section class="view">
+      <p class="kicker">// about.md</p>
+      <h1>About this build</h1>
+      <p class="lede">A short readme on how the routing and state actually work under the hood.</p>
+      <div class="prose">
+        <h2>Routing</h2>
+        <p>Every link in the sidebar carries a <code>data-route</code>. Clicks are intercepted and set <code>location.hash</code>, which pushes a session-history entry on its own. A <code>hashchange</code> listener matches the new fragment against a small route table to decide what goes in the content pane. Hash routing was chosen over <code>history.pushState()</code> because <code>pushState</code> throws a security error when the page is opened straight from disk — hash changes work the same over <code>file://</code> and a real server.</p>
+        <h2>State</h2>
+        <p>An in-memory <code>state</code> object tracks the current route, the active project, and a visit log. Back and forward buttons fire that same <code>hashchange</code> event, which re-renders from that same state rather than reloading the page.</p>
+        <h2>Why it matters</h2>
+        <p>This is the same core mechanism behind client-side routers in larger frameworks — stripped down to plain JavaScript so the moving parts stay visible.</p>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-contact">
+    <section class="view">
+      <p class="kicker">// contact.sh</p>
+      <h1>Get in touch</h1>
+      <p class="lede">This form is a UI demo — submitting logs the payload to the state panel instead of sending anywhere.</p>
+      <form class="form" id="contactForm">
+        <label>
+          <span>name</span>
+          <input type="text" name="name" placeholder="ada lovelace" required>
+        </label>
+        <label>
+          <span>email</span>
+          <input type="email" name="email" placeholder="ada@example.com" required>
+        </label>
+        <label>
+          <span>message</span>
+          <textarea name="message" rows="4" placeholder="say hello"></textarea>
+        </label>
+        <button type="submit" class="btn">Send →</button>
+      </form>
+      <p class="form__result" id="formResult" role="status"></p>
+    </section>
+  </template>
+
+  <template id="tpl-404">
+    <section class="view">
+      <p class="kicker">// 404</p>
+      <h1>Route not found</h1>
+      <p class="lede">Nothing is mounted at this path.</p>
+      <button class="btn" data-nav="/">Return Home.html →</button>
+    </section>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
